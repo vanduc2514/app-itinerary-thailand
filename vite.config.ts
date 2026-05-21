@@ -23,7 +23,7 @@ function appTsxLoader() {
 }
 
 export default defineConfig({
-  base: './',
+  base: '/app-itinerary-thailand/',
   plugins: [appTsxLoader(), react()],
   server: {
     host: '0.0.0.0'
