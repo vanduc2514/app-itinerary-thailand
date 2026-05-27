@@ -16,10 +16,10 @@ const TRANSLATIONS = {
       langToggle: "English"
     },
     map: {
-      title: "Bản Đồ Hành Trình (Tương tác)",
-      loading: "Đang tải bản đồ OpenStreetMap...",
-      note: "* Click vào điểm trên bản đồ để xem chi tiết hoặc tìm kiếm Google",
-      searchBtn: "🔍 Tìm hiểu qua Google",
+      title: "Bản Đồ Hành Trình (Google Maps)",
+      loading: "Đang tải bản đồ Google Maps...",
+      note: "* Click vào điểm trên bản đồ để mở Google Maps hoặc ứng dụng bản đồ trên Android",
+      searchBtn: "🗺️ Mở Google Maps",
       searchSuffix: "Thái Lan"
     },
     highlights: {
@@ -108,10 +108,10 @@ const TRANSLATIONS = {
       langToggle: "Tiếng Việt"
     },
     map: {
-      title: "Interactive Journey Map",
-      loading: "Loading OpenStreetMap...",
-      note: "* Click on a point on the map to view details or search on Google",
-      searchBtn: "🔍 Search on Google",
+      title: "Interactive Journey Map (Google Maps)",
+      loading: "Loading Google Maps...",
+      note: "* Click a point on the map to open Google Maps or the Android maps app",
+      searchBtn: "🗺️ Open Google Maps",
       searchSuffix: "Thailand"
     },
     highlights: {
@@ -203,9 +203,17 @@ export default function App() {
   const polylineRef = useRef(null);
 
   const t = TRANSLATIONS[lang];
+  const getGoogleMapsWebUrl = (name: string) =>
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
+  const getGoogleMapsOpenUrl = (name: string) => {
+    if (typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)) {
+      return `intent://maps.google.com/maps?q=${encodeURIComponent(name)}#Intent;scheme=https;package=com.google.android.apps.maps;end`;
+    }
+    return getGoogleMapsWebUrl(name);
+  };
 
   useEffect(() => {
-    // Tải CSS và JS của Leaflet nguyên bản qua CDN để tránh lỗi import module
+    // Load Leaflet CSS + JS via CDN
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement("link");
       link.id = 'leaflet-css';
@@ -226,11 +234,12 @@ export default function App() {
     }
   }, []);
 
-  // Khởi tạo bản đồ 1 lần duy nhất
+  // Initialize Leaflet map once
   useEffect(() => {
     if (!mapLoaded || !window.L || mapRef.current) return;
 
     const map = window.L.map('tour-map').setView([13.3, 100.7], 8);
+
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
@@ -239,11 +248,10 @@ export default function App() {
     markersGroupRef.current = window.L.layerGroup().addTo(map);
   }, [mapLoaded]);
 
-  // Cập nhật Markers mỗi khi đổi ngôn ngữ hoặc sau khi map đã load
+  // Update markers when language changes or map loads
   useEffect(() => {
     if (!mapRef.current || !markersGroupRef.current) return;
 
-    // Xóa layer cũ
     markersGroupRef.current.clearLayers();
     markersRef.current = {};
 
@@ -257,38 +265,37 @@ export default function App() {
       shadowSize: [41, 41]
     });
 
-    // Thêm lại điểm ảnh theo ngôn ngữ mới
     t.itinerary.days.forEach(day => {
       day.activities.forEach(act => {
-        const marker = window.L.marker([act.lat, act.lng], { icon: customIcon }).addTo(markersGroupRef.current);
-        
-        const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(act.name + ' ' + t.map.searchSuffix)}`;
+        const marker = window.L.marker([act.lat, act.lng], { icon: customIcon })
+          .addTo(markersGroupRef.current);
+
+        const googleMapsUrl = getGoogleMapsWebUrl(`${act.name} ${t.map.searchSuffix}`);
         const popupContent = `
-          <div style="font-family: sans-serif; min-width: 200px;">
-            <h3 style="font-weight: bold; font-size: 16px; color: #1d4ed8; margin-bottom: 4px;">${act.name}</h3>
-            <p style="font-size: 13px; margin-bottom: 8px; color: #4b5563;">${act.desc}</p>
-            <a href="${googleSearchUrl}" target="_blank" style="display: inline-block; background: #3b82f6; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 500;">
-              ${t.map.searchBtn}
+          <div style="font-family:sans-serif;min-width:200px;max-width:260px">
+            <h3 style="font-weight:bold;font-size:15px;color:#1d4ed8;margin:0 0 4px">${act.name}</h3>
+            <p style="font-size:12px;margin:0 0 10px;color:#4b5563;line-height:1.4">${act.desc}</p>
+            <a href="${googleMapsUrl}" target="_blank" rel="noreferrer"
+               style="display:inline-flex;align-items:center;gap:4px;background:#1d4ed8;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600">
+              🗺️ ${t.map.searchBtn}
             </a>
           </div>
         `;
-        
-        marker.bindPopup(popupContent);
+
+        marker.bindPopup(popupContent, { maxWidth: 280 });
         marker.on('click', () => handleActivityClick(act.id));
         markersRef.current[act.id] = marker;
       });
     });
 
-    // Mở lại popup nếu đang active một điểm
     if (activeActivityId && markersRef.current[activeActivityId]) {
-       markersRef.current[activeActivityId].openPopup();
+      markersRef.current[activeActivityId].openPopup();
     }
   }, [lang, mapLoaded]);
 
   const handleActivityClick = (actId) => {
     setActiveActivityId(actId);
 
-    // Tìm lịch trình của ngày chứa điểm được click để vẽ đường đi
     let currentDayActivities = [];
     let act = null;
 
@@ -302,23 +309,19 @@ export default function App() {
     }
 
     if (act && mapRef.current && markersRef.current[actId]) {
-      // Xóa đường nối cũ
       if (polylineRef.current) {
         mapRef.current.removeLayer(polylineRef.current);
       }
 
       const latlngs = currentDayActivities.map(a => [a.lat, a.lng]);
 
-      // Vẽ đường nối mới (Polyline) nếu có nhiều hơn 1 điểm
       if (latlngs.length > 1) {
         polylineRef.current = window.L.polyline(latlngs, {
           color: '#ef4444',
           weight: 4,
           opacity: 0.8,
-          dashArray: '10, 10',
-          lineJoin: 'round'
+          dashArray: '10, 10'
         }).addTo(mapRef.current);
-        
         mapRef.current.fitBounds(polylineRef.current.getBounds(), { padding: [50, 50], maxZoom: 13 });
       } else {
         mapRef.current.setView([act.lat, act.lng], 13, { animate: true });
@@ -327,11 +330,9 @@ export default function App() {
       markersRef.current[actId].openPopup();
     }
 
-    // Cuộn trang mượt mà
+    // Smooth scroll to itinerary card
     const el = document.getElementById(`activity-${actId}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   const AccordionSection = ({ title, children, defaultOpen = false }) => {
@@ -465,7 +466,7 @@ export default function App() {
                           {activeActivityId === act.id && (
                              <div className="mt-3">
                                <a 
-                                href={`https://www.google.com/search?q=${encodeURIComponent(act.name + ' ' + t.map.searchSuffix)}`}
+                                href={getGoogleMapsWebUrl(`${act.name} ${t.map.searchSuffix}`)}
                                 target="_blank" rel="noreferrer"
                                 className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1.5 rounded-full font-medium transition"
                                 onClick={(e) => e.stopPropagation()}

@@ -9,8 +9,11 @@ function appTsxLoader() {
     async transform(code: string, id: string) {
       if (
         id.endsWith(`${path.sep}app.ts`) ||
+        id.endsWith(`${path.sep}app.tsx`) ||
         id.endsWith(`${path.sep}src${path.sep}app.ts`) ||
-        id === 'app.ts'
+        id.endsWith(`${path.sep}src${path.sep}app.tsx`) ||
+        id === 'app.ts' ||
+        id === 'app.tsx'
       ) {
         return transformWithEsbuild(code, id, {
           loader: 'tsx',
