@@ -35,7 +35,7 @@ const TRANSLATIONS = {
     itinerary: {
       title: "Lịch Trình Chi Tiết",
       mealLabel: "Ăn",
-      googleLink: "🔍 Tìm kiếm trên Google ↗",
+      googleLink: "Tìm hiểu về điểm này trên Google ↗",
       days: [
         {
           day: 1, title: "NGÀY 01: HÀ NỘI - BANGKOK – PATAYA – CHỢ NỔI - PD SHOW", meals: "Trưa mb, Tối", dateInfo: "Hành trình khởi hành",
@@ -127,7 +127,7 @@ const TRANSLATIONS = {
     itinerary: {
       title: "Detailed Itinerary",
       mealLabel: "Meals",
-      googleLink: "🔍 Search on Google ↗",
+      googleLink: "Learn more about this place on Google ↗",
       days: [
         {
           day: 1, title: "DAY 01: HANOI - BANGKOK – PATTAYA – FLOATING MARKET", meals: "Lunch (Flight), Dinner", dateInfo: "Departure Journey",
