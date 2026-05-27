@@ -326,7 +326,7 @@ export default function App() {
     }
   }, [lang, mapLoaded]);
 
-  const handleActivityClick = (actId, scrollToCard = true) => {
+  const handleActivityClick = (actId: string, scrollToCard: boolean = true) => {
     setActiveActivityId(actId);
 
     let currentDayActivities = [];
