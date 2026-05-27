@@ -211,19 +211,29 @@ export default function App() {
     'khao-chee-chan': 'Khao Chi Chan Pattaya',
     'modern-latex': 'Modern Latex Pattaya',
     'bbq-pattaya': 'Pattaya BBQ Buffet',
-    agarwood: 'Agarwood Museum Pattaya',
+    agarwood: '12.9510,100.9000',
     'muang-boran': 'Ancient City Muang Boran Samut Prakan',
     'central-world': 'CentralWorld Bangkok',
     'wat-arun': 'Wat Arun Bangkok',
-    'snake-farm': 'Queen Saovabha Memorial Institute Snake Farm Bangkok',
+    'snake-farm': 'Snake Farm Bangkok',
     'boeing-747': 'Boeing 747 Cafe Bangkok',
     asiatique: 'Asiatique The Riverfront Bangkok',
     'wat-yannawa': 'Wat Yannawa Bangkok',
     'suvarnabhumi-return': 'Suvarnabhumi Airport Bangkok'
   };
 
+  const GOOGLE_SEARCH_QUERY_BY_ACTIVITY_ID: Record<string, string> = {
+    'coral-island': 'Koh Larn Pattaya',
+    'khao-chee-chan': 'Khao Chee Chan Pattaya',
+    'modern-latex': 'Modern Latex Pattaya Thailand',
+    agarwood: 'Agarwood Museum Pattaya Thailand',
+  };
+
   const getPlaceQuery = (act: { id: string; name: string }) =>
     GOOGLE_MAPS_QUERY_BY_ACTIVITY_ID[act.id] ?? `${act.name} Thailand`;
+
+  const getSearchQuery = (act: { id: string; name: string }) =>
+    GOOGLE_SEARCH_QUERY_BY_ACTIVITY_ID[act.id] ?? act.name;
 
   const getGoogleMapsUrl = (query: string) => {
     if (typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)) {
@@ -232,8 +242,8 @@ export default function App() {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
   };
 
-  const getGoogleSearchUrl = (name: string) =>
-    `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+  const getGoogleSearchUrl = (act: { id: string; name: string }) =>
+    `https://www.google.com/search?q=${encodeURIComponent(getSearchQuery(act))}`;
 
   useEffect(() => {
     // Load Leaflet CSS + JS via CDN
@@ -306,7 +316,7 @@ export default function App() {
         `;
 
         marker.bindPopup(popupContent, { maxWidth: 280 });
-        marker.on('click', () => handleActivityClick(act.id));
+        marker.on('click', () => handleActivityClick(act.id, false));
         markersRef.current[act.id] = marker;
       });
     });
@@ -316,7 +326,7 @@ export default function App() {
     }
   }, [lang, mapLoaded]);
 
-  const handleActivityClick = (actId) => {
+  const handleActivityClick = (actId, scrollToCard = true) => {
     setActiveActivityId(actId);
 
     let currentDayActivities = [];
@@ -353,9 +363,11 @@ export default function App() {
       markersRef.current[actId].openPopup();
     }
 
-    // Smooth scroll to itinerary card
-    const el = document.getElementById(`activity-${actId}`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Smooth scroll to itinerary card (only when triggered from the itinerary, not from the map)
+    if (scrollToCard) {
+      const el = document.getElementById(`activity-${actId}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
   const AccordionSection = ({ title, children, defaultOpen = false }) => {
@@ -489,7 +501,7 @@ export default function App() {
                           {activeActivityId === act.id && (
                              <div className="mt-3">
                                <a 
-                                href={getGoogleSearchUrl(act.name)}
+                                href={getGoogleSearchUrl(act)}
                                 target="_blank" rel="noreferrer"
                                 className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1.5 rounded-full font-medium transition"
                                 onClick={(e) => e.stopPropagation()}
