@@ -35,7 +35,7 @@ const TRANSLATIONS = {
     itinerary: {
       title: "Lịch Trình Chi Tiết",
       mealLabel: "Ăn",
-      googleLink: "Tìm hiểu về điểm này trên Google ↗",
+      googleLink: "🔍 Tìm kiếm trên Google ↗",
       days: [
         {
           day: 1, title: "NGÀY 01: HÀ NỘI - BANGKOK – PATAYA – CHỢ NỔI - PD SHOW", meals: "Trưa mb, Tối", dateInfo: "Hành trình khởi hành",
@@ -127,7 +127,7 @@ const TRANSLATIONS = {
     itinerary: {
       title: "Detailed Itinerary",
       mealLabel: "Meals",
-      googleLink: "Learn more about this place on Google ↗",
+      googleLink: "🔍 Search on Google ↗",
       days: [
         {
           day: 1, title: "DAY 01: HANOI - BANGKOK – PATTAYA – FLOATING MARKET", meals: "Lunch (Flight), Dinner", dateInfo: "Departure Journey",
@@ -203,14 +203,37 @@ export default function App() {
   const polylineRef = useRef(null);
 
   const t = TRANSLATIONS[lang];
-  const getGoogleMapsWebUrl = (name: string) =>
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
-  const getGoogleMapsOpenUrl = (name: string) => {
-    if (typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)) {
-      return `intent://maps.google.com/maps?q=${encodeURIComponent(name)}#Intent;scheme=https;package=com.google.android.apps.maps;end`;
-    }
-    return getGoogleMapsWebUrl(name);
+  const GOOGLE_MAPS_QUERY_BY_ACTIVITY_ID: Record<string, string> = {
+    suvarnabhumi: 'Suvarnabhumi Airport Bangkok',
+    'floating-market': 'Pattaya Floating Market',
+    colosseum: 'Colosseum Show Pattaya',
+    'coral-island': 'Koh Larn Pattaya',
+    'khao-chee-chan': 'Khao Chi Chan Pattaya',
+    'modern-latex': 'Modern Latex Pattaya',
+    'bbq-pattaya': 'Pattaya BBQ Buffet',
+    agarwood: 'Agarwood Museum Pattaya',
+    'muang-boran': 'Ancient City Muang Boran Samut Prakan',
+    'central-world': 'CentralWorld Bangkok',
+    'wat-arun': 'Wat Arun Bangkok',
+    'snake-farm': 'Queen Saovabha Memorial Institute Snake Farm Bangkok',
+    'boeing-747': 'Boeing 747 Cafe Bangkok',
+    asiatique: 'Asiatique The Riverfront Bangkok',
+    'wat-yannawa': 'Wat Yannawa Bangkok',
+    'suvarnabhumi-return': 'Suvarnabhumi Airport Bangkok'
   };
+
+  const getPlaceQuery = (act: { id: string; name: string }) =>
+    GOOGLE_MAPS_QUERY_BY_ACTIVITY_ID[act.id] ?? `${act.name} Thailand`;
+
+  const getGoogleMapsUrl = (query: string) => {
+    if (typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)) {
+      return `intent://maps.google.com/maps?q=${encodeURIComponent(query)}#Intent;scheme=https;package=com.google.android.apps.maps;end`;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  };
+
+  const getGoogleSearchUrl = (name: string) =>
+    `https://www.google.com/search?q=${encodeURIComponent(name)}`;
 
   useEffect(() => {
     // Load Leaflet CSS + JS via CDN
@@ -270,7 +293,7 @@ export default function App() {
         const marker = window.L.marker([act.lat, act.lng], { icon: customIcon })
           .addTo(markersGroupRef.current);
 
-        const googleMapsUrl = getGoogleMapsWebUrl(`${act.name} ${t.map.searchSuffix}`);
+        const googleMapsUrl = getGoogleMapsUrl(getPlaceQuery(act));
         const popupContent = `
           <div style="font-family:sans-serif;min-width:200px;max-width:260px">
             <h3 style="font-weight:bold;font-size:15px;color:#1d4ed8;margin:0 0 4px">${act.name}</h3>
@@ -466,7 +489,7 @@ export default function App() {
                           {activeActivityId === act.id && (
                              <div className="mt-3">
                                <a 
-                                href={getGoogleMapsWebUrl(`${act.name} ${t.map.searchSuffix}`)}
+                                href={getGoogleSearchUrl(act.name)}
                                 target="_blank" rel="noreferrer"
                                 className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1.5 rounded-full font-medium transition"
                                 onClick={(e) => e.stopPropagation()}
