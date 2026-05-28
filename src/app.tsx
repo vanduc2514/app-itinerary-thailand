@@ -211,7 +211,7 @@ export default function App() {
     'khao-chee-chan': 'Khao Chi Chan Pattaya',
     'modern-latex': 'Modern Latex Pattaya',
     'bbq-pattaya': 'Pattaya BBQ Buffet',
-    agarwood: '12.9510,100.9000',
+    agarwood: 'The Sanctuary of Truth Museum Pattaya',
     'muang-boran': 'Ancient City Muang Boran Samut Prakan',
     'central-world': 'CentralWorld Bangkok',
     'wat-arun': 'Wat Arun Bangkok',
@@ -226,7 +226,7 @@ export default function App() {
     'coral-island': 'Koh Larn Pattaya',
     'khao-chee-chan': 'Khao Chee Chan Pattaya',
     'modern-latex': 'Modern Latex Pattaya Thailand',
-    agarwood: 'Agarwood Museum Pattaya Thailand',
+    agarwood: 'The Sanctuary of Truth Museum Pattaya Thailand',
   };
 
   const getPlaceQuery = (act: { id: string; name: string }) =>
